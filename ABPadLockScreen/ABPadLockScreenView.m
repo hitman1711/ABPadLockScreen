@@ -25,7 +25,6 @@
 #import "ABPinSelectionView.h"
 
 #define animationLength 0.15
-#define IS_IPHONE5 ([UIScreen mainScreen].bounds.size.height==568)
 #define IS_IOS6_OR_LOWER (floor(NSFoundationVersionNumber) <= NSFoundationVersionNumber_iOS_6_1)
 
 @interface ABPadLockScreenView()
@@ -60,17 +59,17 @@
     if (self)
     {
         _complexPin = complexPin;
-		
-		if(complexPin)
-		{
-			_digitsTextField = [UITextField new];
-			_digitsTextField.enabled = NO;
-			_digitsTextField.secureTextEntry = YES;
-			_digitsTextField.textAlignment = NSTextAlignmentCenter;
-			_digitsTextField.borderStyle = UITextBorderStyleNone;
-			_digitsTextField.layer.borderWidth = 1.0f;
-			_digitsTextField.layer.cornerRadius = 5.0f;
-		}
+        
+        if(complexPin)
+        {
+            _digitsTextField = [UITextField new];
+            _digitsTextField.enabled = NO;
+            _digitsTextField.secureTextEntry = YES;
+            _digitsTextField.textAlignment = NSTextAlignmentCenter;
+            _digitsTextField.borderStyle = UITextBorderStyleNone;
+            _digitsTextField.layer.borderWidth = 1.0f;
+            _digitsTextField.layer.cornerRadius = 5.0f;
+        }
     }
     return self;
 }
@@ -90,11 +89,11 @@
     if (self)
     {
         [self setDefaultStyles];
-		
-		_contentView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, MIN(frame.size.height, 568.0f))];
-		_contentView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleBottomMargin;
-		_contentView.center = self.center;
-		[self addSubview:_contentView];
+        
+        _contentView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, MIN(frame.size.height, 568.0f))];
+        _contentView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleBottomMargin;
+        _contentView.center = self.center;
+        [self addSubview:_contentView];
         
         _requiresRotationCorrection = NO;
         
@@ -120,26 +119,26 @@
         
         _buttonZero = [[ABPadButton alloc] initWithFrame:CGRectZero number:0 letters:nil];
         
-		UIButtonType buttonType = UIButtonTypeSystem;
-		if(NSFoundationVersionNumber <= NSFoundationVersionNumber_iOS_6_1)
-		{
-			buttonType = UIButtonTypeCustom;
-		}
-		
-		_cancelButton = [UIButton buttonWithType:buttonType];
+        UIButtonType buttonType = UIButtonTypeSystem;
+        if(NSFoundationVersionNumber <= NSFoundationVersionNumber_iOS_6_1)
+        {
+            buttonType = UIButtonTypeCustom;
+        }
+        
+        _cancelButton = [UIButton buttonWithType:buttonType];
         [_cancelButton setTitle:NSLocalizedString(@"Cancel", @"") forState:UIControlStateNormal];
-		_cancelButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
+        _cancelButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
         
         _deleteButton = [UIButton buttonWithType:buttonType];
         [_deleteButton setTitle:NSLocalizedString(@"Delete", @"") forState:UIControlStateNormal];
-		_deleteButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
+        _deleteButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
         _deleteButton.alpha = 0.0f;
         
-		_okButton = [UIButton buttonWithType:buttonType];
-		[_okButton setTitle:NSLocalizedString(@"OK", @"") forState:UIControlStateNormal];
-		_okButton.alpha = 0.0f;
-		_okButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
-		
+        _okButton = [UIButton buttonWithType:buttonType];
+        [_okButton setTitle:NSLocalizedString(@"OK", @"") forState:UIControlStateNormal];
+        _okButton.alpha = 0.0f;
+        _okButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+        
         // default to NO
         _complexPin = NO;
     }
@@ -152,7 +151,7 @@
 {
     [super layoutSubviews];
     [self performLayout];
-	[self prepareAppearance];
+    [self prepareAppearance];
 }
 
 #pragma mark -
@@ -167,14 +166,14 @@
 
 - (NSArray *)digitsArray
 {
-	if(self.isComplexPin)
-	{
-		return nil; //If complex, no digit views are available.
-	}
-	
+    if(self.isComplexPin)
+    {
+        return nil; //If complex, no digit views are available.
+    }
+    
     if (!_digitsArray)
     {
-		//Simple pin code is always (SIMPLE_PIN_LENGTH) characters.
+        //Simple pin code is always (SIMPLE_PIN_LENGTH) characters.
         NSMutableArray *array = [NSMutableArray arrayWithCapacity:SIMPLE_PIN_LENGTH];
         
         for (NSInteger i = 0; i < SIMPLE_PIN_LENGTH; i++)
@@ -190,7 +189,7 @@
 }
 
 - (NSArray *)secondDigitsArray{
-
+    
     if (!_secondDigitsArray){
         NSMutableArray *array = [NSMutableArray arrayWithCapacity:SIMPLE_PIN_LENGTH];
         for (NSInteger i = 0; i < SIMPLE_PIN_LENGTH; i++){
@@ -222,7 +221,7 @@
 
 - (void)showOKButton:(BOOL)show animated:(BOOL)animated completion:(void (^)(BOOL finished))completion
 {
-	__weak ABPadLockScreenView *weakSelf = self;
+    __weak ABPadLockScreenView *weakSelf = self;
     [self performAnimations:^{
         weakSelf.okButton.alpha = show ? 1.0f : 0.0f;
     } animated:animated completion:completion];
@@ -239,15 +238,17 @@
     [self.detailLabel.layer addAnimation:animation forKey:@"kCATransitionFade"];
     
     self.detailLabel.text = string;
-
+    
+    CGFloat detailHindent = IS_IPHONE4 ? 5 : 20;
+    
     if (_isSetup) {
-        CGFloat pinSelectionTop = self.enterPasscodeLabel.frame.origin.y + self.enterPasscodeLabel.frame.size.height + 13;
+        CGFloat detailLabelTop = self.enterPasscodeLabel.frame.origin.y + self.enterPasscodeLabel.frame.size.height+detailHindent;
         
-        self.detailLabel.frame = CGRectMake(([self correctWidth]/2) - 150, pinSelectionTop, 300, 23);
+        self.detailLabel.frame = CGRectMake(([self correctWidth]/2) - 150, detailLabelTop, 300, 23);
     } else {
-	CGFloat pinSelectionTop = self.enterPasscodeLabel.frame.origin.y + self.enterPasscodeLabel.frame.size.height + 17.5;
-	
-    self.detailLabel.frame = CGRectMake(([self correctWidth]/2) - 150, pinSelectionTop + 30, 300, 23);
+        CGFloat pinSelectionTop = self.enterPasscodeLabel.frame.origin.y + self.enterPasscodeLabel.frame.size.height + 17.5;
+        
+        self.detailLabel.frame = CGRectMake(([self correctWidth]/2) - 150, pinSelectionTop + 30, 300, 23);
     }
 }
 
@@ -269,43 +270,51 @@
 
 - (void)animateFailureNotification
 {
-	[self _animateFailureNotificationDirection:-35];
+    [self _animateFailureNotificationDirection:-35];
 }
 
 - (void)_animateFailureNotificationDirection:(CGFloat)direction
 {
-	[UIView animateWithDuration:0.08 animations:^{
-		
-		CGAffineTransform transform = CGAffineTransformMakeTranslation(direction, 0);
-		
-		if(self.isComplexPin)
-		{
-			self.digitsTextField.layer.affineTransform = transform;
-		}
-		else
-		{
-			for (ABPinSelectionView *view in self.digitsArray)
-			{
-				view.layer.affineTransform = transform;
-			}
-		}
-	} completion:^(BOOL finished) {
-		if(fabs(direction) < 1) {
-			if(self.isComplexPin)
-			{
-				self.digitsTextField.layer.affineTransform = CGAffineTransformIdentity;
-			}
-			else
-			{
-				for (ABPinSelectionView *view in self.digitsArray)
-				{
-					view.layer.affineTransform = CGAffineTransformIdentity;
-				}
-			}
-			return;
-		}
-		[self _animateFailureNotificationDirection:-1 * direction / 2];
-	}];
+    [UIView animateWithDuration:0.08 animations:^{
+        
+        CGAffineTransform transform = CGAffineTransformMakeTranslation(direction, 0);
+        
+        if(self.isComplexPin)
+        {
+            self.digitsTextField.layer.affineTransform = transform;
+        }
+        else
+        {
+            for (ABPinSelectionView *view in self.digitsArray)
+            {
+                view.layer.affineTransform = transform;
+            }
+            if (_isSetup) {
+                for (ABPinSelectionView *view in self.secondDigitsArray)
+                    view.layer.affineTransform = transform;
+            }
+        }
+    } completion:^(BOOL finished) {
+        if(fabs(direction) < 1) {
+            if(self.isComplexPin)
+            {
+                self.digitsTextField.layer.affineTransform = CGAffineTransformIdentity;
+            }
+            else
+            {
+                for (ABPinSelectionView *view in self.digitsArray)
+                {
+                    view.layer.affineTransform = CGAffineTransformIdentity;
+                }
+                if (_isSetup) {
+                    for (ABPinSelectionView *view in self.secondDigitsArray)
+                        view.layer.affineTransform = CGAffineTransformIdentity;
+                }
+            }
+            return;
+        }
+        [self _animateFailureNotificationDirection:-1 * direction / 2];
+    }];
 }
 
 -(void)checkPin{
@@ -323,70 +332,70 @@
         {
             [view setSelected:NO animated:animated completion:nil];
         }
-
+        
     }
     
     [self showCancelButtonAnimated:animated completion:nil];
-	[self showOKButton:NO animated:animated completion:nil];
-	
-	[self updatePinTextfieldWithLength:0];
+    [self showOKButton:NO animated:animated completion:nil];
+    
+    [self updatePinTextfieldWithLength:0];
 }
 
 - (void)updatePinTextfieldWithLength:(NSUInteger)length
 {
-	if(NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1)
-	{
-		NSAttributedString* digitsTextFieldAttrStr = [[NSAttributedString alloc] initWithString:[@"" stringByPaddingToLength:length withString:@" " startingAtIndex:0]
-																					 attributes:@{NSKernAttributeName: @4,
-																								  NSFontAttributeName: [UIFont boldSystemFontOfSize:18]}];
-		[UIView transitionWithView:self.digitsTextField duration:animationLength options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
-			self.digitsTextField.attributedText = digitsTextFieldAttrStr;
-		} completion:nil];
-	}
-	else
-	{
-		self.digitsTextField.text = [@"" stringByPaddingToLength:length withString:@" " startingAtIndex:0];
-	}
+    if(NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1)
+    {
+        NSAttributedString* digitsTextFieldAttrStr = [[NSAttributedString alloc] initWithString:[@"" stringByPaddingToLength:length withString:@" " startingAtIndex:0]
+                                                                                     attributes:@{NSKernAttributeName: @4,
+                                                                                                  NSFontAttributeName: [UIFont boldSystemFontOfSize:18]}];
+        [UIView transitionWithView:self.digitsTextField duration:animationLength options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
+            self.digitsTextField.attributedText = digitsTextFieldAttrStr;
+        } completion:nil];
+    }
+    else
+    {
+        self.digitsTextField.text = [@"" stringByPaddingToLength:length withString:@" " startingAtIndex:0];
+    }
 }
 
 - (void)setBackgroundView:(UIView *)backgroundView
 {
-	[_backgroundView removeFromSuperview];
-	_backgroundView = backgroundView;
-
-	if(_backgroundView == nil)
-	{
-		[_backgroundBlurringView setHidden:YES];
-	}
-	else
-	{
-		if(_backgroundBlurringView == nil)
-		{
+    [_backgroundView removeFromSuperview];
+    _backgroundView = backgroundView;
+    
+    if(_backgroundView == nil)
+    {
+        [_backgroundBlurringView setHidden:YES];
+    }
+    else
+    {
+        if(_backgroundBlurringView == nil)
+        {
             if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_7_1) { // iOS 8
                 UIBlurEffect *blur = [UIBlurEffect effectWithStyle: UIBlurEffectStyleLight];
                 _backgroundBlurringView = [[UIVisualEffectView alloc] initWithEffect: blur];
             }
             else if(NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1)
-			{
-				_backgroundBlurringView = [[UINavigationBar alloc] initWithFrame:self.bounds];
-				[(UINavigationBar*)_backgroundBlurringView setBarStyle: UIBarStyleBlack];
-			}
-			else
-			{
-				_backgroundBlurringView = [[UIView alloc] initWithFrame:self.bounds];
-				_backgroundBlurringView.backgroundColor = [UIColor colorWithWhite:0.0f alpha:0.75f];
-			}
+            {
+                _backgroundBlurringView = [[UINavigationBar alloc] initWithFrame:self.bounds];
+                [(UINavigationBar*)_backgroundBlurringView setBarStyle: UIBarStyleBlack];
+            }
+            else
+            {
+                _backgroundBlurringView = [[UIView alloc] initWithFrame:self.bounds];
+                _backgroundBlurringView.backgroundColor = [UIColor colorWithWhite:0.0f alpha:0.75f];
+            }
             _backgroundBlurringView.frame = self.frame;
-			_backgroundBlurringView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-			[self insertSubview:_backgroundBlurringView belowSubview:_contentView];
-		}
-		
-		[_backgroundBlurringView setHidden:NO];
-		[_backgroundView setFrame:self.bounds];
-		[_backgroundView setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight];
-
+            _backgroundBlurringView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+            [self insertSubview:_backgroundBlurringView belowSubview:_contentView];
+        }
+        
+        [_backgroundBlurringView setHidden:NO];
+        [_backgroundView setFrame:self.bounds];
+        [_backgroundView setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight];
+        
         [self insertSubview:_backgroundView belowSubview:_backgroundBlurringView];
-	}
+    }
 }
 
 #pragma mark -
@@ -404,11 +413,11 @@
     self.enterPasscodeLabel.textColor = self.labelColor;
     self.enterPasscodeLabel.font = self.enterPasscodeLabelFont;
     
-	self.digitsTextField.textColor = [(ABPadButton*)self.buttonZero borderColor];
-	self.digitsTextField.layer.borderColor = [(ABPadButton*)self.buttonZero borderColor].CGColor;
-	
-	[self updatePinTextfieldWithLength:0];
-	
+    self.digitsTextField.textColor = [(ABPadButton*)self.buttonZero borderColor];
+    self.digitsTextField.layer.borderColor = [(ABPadButton*)self.buttonZero borderColor].CGColor;
+    
+    [self updatePinTextfieldWithLength:0];
+    
     self.detailLabel.textColor = self.labelColor;
     self.detailLabel.font = self.detailLabelFont;
     
@@ -420,82 +429,83 @@
     
     [self.deleteButton setTitleColor:self.labelColor forState:UIControlStateNormal];
     self.deleteButton.titleLabel.font = self.deleteCancelLabelFont;
-
-	[self.okButton setTitleColor:self.labelColor forState:UIControlStateNormal];
+    
+    [self.okButton setTitleColor:self.labelColor forState:UIControlStateNormal];
 }
 
 #pragma mark -
 #pragma mark - Leyout Methods
-- (void)performLayout
-{
-    if (_isSetup) [self layoutTitleAreaForSetup];
-    else [self layoutTitleArea];
-    [self layoutButtonArea];
+- (void)performLayout {
+    if (_isSetup) {
+        [self layoutTitleAreaForSetup];
+        [self layoutButtonAreaForSetup];
+    } else {
+        [self layoutTitleArea];
+        [self layoutButtonArea];
+    }
     _requiresRotationCorrection = YES;
 }
 
 - (void)layoutTitleArea
 {
     CGFloat top = NSFoundationVersionNumber <= NSFoundationVersionNumber_iOS_6_1 ? 15 : 65;
-	
-	if(!IS_IPHONE5)
-	{
-		top = NSFoundationVersionNumber <= NSFoundationVersionNumber_iOS_6_1 ? 5 : 20;
-	}
-	
-	if(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
-	{
-		top = NSFoundationVersionNumber <= NSFoundationVersionNumber_iOS_6_1 ? 30 : 80;;
-	}
-	
+    
+    if(!IS_IPHONE5)
+    {
+        top = NSFoundationVersionNumber <= NSFoundationVersionNumber_iOS_6_1 ? 5 : 20;
+    }
+    
+    if(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+    {
+        top = NSFoundationVersionNumber <= NSFoundationVersionNumber_iOS_6_1 ? 30 : 80;;
+    }
+    
     self.enterPasscodeLabel.frame = CGRectMake(([self correctWidth]/2) - 150, top, 300, 23);
     [self.contentView addSubview:self.enterPasscodeLabel];
-	
-	CGFloat pinSelectionTop = self.enterPasscodeLabel.frame.origin.y + self.enterPasscodeLabel.frame.size.height + 17.5;
-
-	if(self.isComplexPin)
-	{
-		CGFloat textFieldWidth = 152;
-		_digitsTextField.frame = CGRectMake((self.correctWidth / 2) - (textFieldWidth / 2), pinSelectionTop - 7.5f, textFieldWidth, 30);
-		
-		[self.contentView addSubview:_digitsTextField];
-		
-		_okButton.frame = CGRectMake(_digitsTextField.frame.origin.x + _digitsTextField.frame.size.width + 10, pinSelectionTop - 7.5f, (self.correctWidth - _digitsTextField.frame.size.width) / 2 - 10, 30);
-		
-		[self.contentView addSubview:_okButton];
-	}
-	else
-	{
-		CGFloat pinPadding = 25;
-		CGFloat pinRowWidth = (ABPinSelectionViewWidth * SIMPLE_PIN_LENGTH) + (pinPadding * (SIMPLE_PIN_LENGTH - 1));
-		
-		CGFloat selectionViewLeft = ([self correctWidth]/2) - (pinRowWidth/2);
-		
-		for (ABPinSelectionView *view in self.digitsArray) {
-			[self setUpPinSelectionView:view  left:selectionViewLeft top:pinSelectionTop];
-			selectionViewLeft+=ABPinSelectionViewWidth + pinPadding;
-		}
-	}
-	
+    
+    CGFloat pinSelectionTop = self.enterPasscodeLabel.frame.origin.y + self.enterPasscodeLabel.frame.size.height + 17.5;
+    
+    if(self.isComplexPin)
+    {
+        CGFloat textFieldWidth = 152;
+        _digitsTextField.frame = CGRectMake((self.correctWidth / 2) - (textFieldWidth / 2), pinSelectionTop - 7.5f, textFieldWidth, 30);
+        
+        [self.contentView addSubview:_digitsTextField];
+        
+        _okButton.frame = CGRectMake(_digitsTextField.frame.origin.x + _digitsTextField.frame.size.width + 10, pinSelectionTop - 7.5f, (self.correctWidth - _digitsTextField.frame.size.width) / 2 - 10, 30);
+        
+        [self.contentView addSubview:_okButton];
+    }
+    else
+    {
+        CGFloat pinPadding = 25;
+        CGFloat pinRowWidth = (ABPinSelectionViewWidth * SIMPLE_PIN_LENGTH) + (pinPadding * (SIMPLE_PIN_LENGTH - 1));
+        
+        CGFloat selectionViewLeft = ([self correctWidth]/2) - (pinRowWidth/2);
+        
+        for (ABPinSelectionView *view in self.digitsArray) {
+            [self setUpPinSelectionView:view  left:selectionViewLeft top:pinSelectionTop];
+            selectionViewLeft+=ABPinSelectionViewWidth + pinPadding;
+        }
+    }
+    
     self.detailLabel.frame = CGRectMake(([self correctWidth]/2) - 150, pinSelectionTop + 30, 300, 23);
     [self.contentView addSubview:self.detailLabel];
 }
 
 -(void)layoutTitleAreaForSetup{
-    CGFloat top = NSFoundationVersionNumber <= NSFoundationVersionNumber_iOS_6_1 ? 15 : 65;
-    if(!IS_IPHONE5)
-    {
-        top = NSFoundationVersionNumber <= NSFoundationVersionNumber_iOS_6_1 ? 5 : 15;
-    }
-    if(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
-    {
+    CGFloat top = IS_IPHONE4 ? 15 : 30;
+    CGFloat detailHindent = IS_IPHONE4 ? 5 : 20;
+    CGFloat repeatHindent = IS_IPHONE4 ? 5 : 15;
+
+    if(IS_IPAD)
         top = NSFoundationVersionNumber <= NSFoundationVersionNumber_iOS_6_1 ? 30 : 80;;
-    }
-    top = 30;
+    
     self.enterPasscodeLabel.frame = CGRectMake(([self correctWidth]/2) - 150, top, 300, 23);
     [self.contentView addSubview:self.enterPasscodeLabel];
     
-    CGFloat detailLabelTop = self.enterPasscodeLabel.frame.origin.y + self.enterPasscodeLabel.frame.size.height+20;
+    
+    CGFloat detailLabelTop = self.enterPasscodeLabel.frame.origin.y + self.enterPasscodeLabel.frame.size.height+detailHindent;
     self.detailLabel.frame = CGRectMake(([self correctWidth]/2) - 150, detailLabelTop, 300, 23);
     [self.contentView addSubview:self.detailLabel];
     
@@ -510,18 +520,61 @@
         [self setUpPinSelectionView:view  left:selectionViewLeft top:pinSelectionTop];
         selectionViewLeft+=ABPinSelectionViewWidth + pinPadding;
     }
-    CGFloat repeatLabelTop = pinSelectionTop+ABPinSelectionViewHeight+15;
-
+    CGFloat repeatLabelTop = pinSelectionTop+ABPinSelectionViewHeight+repeatHindent;
+    
     self.repeatLabel.frame = CGRectMake(([self correctWidth]/2) - 150,repeatLabelTop , 300, 23);
     [self.contentView addSubview:self.repeatLabel];
     
-    _secondSelectionTop = self.repeatLabel.frame.origin.y + self.repeatLabel.frame.size.height + 10;
+    _secondSelectionTop = self.repeatLabel.frame.origin.y + self.repeatLabel.frame.size.height + 5;
     selectionViewLeft = ([self correctWidth]/2) - (pinRowWidth/2);
     for (ABPinSelectionView *view in self.secondDigitsArray) {
         [self setUpPinSelectionView:view  left:selectionViewLeft top:_secondSelectionTop];
         selectionViewLeft+=ABPinSelectionViewWidth + pinPadding;
     }
-   
+    
+}
+
+- (void)layoutButtonAreaForSetup {
+    CGFloat horizontalButtonPadding = 20;
+    CGFloat verticalButtonPadding = IS_IPHONE4 ? 5 : 10;
+    CGFloat buttonRowWidth = (ABPadButtonWidth * 3) + (horizontalButtonPadding * 2);
+    
+    CGFloat lefButtonLeft = ([self correctWidth]/2) - (buttonRowWidth/2) + 0.5;
+    CGFloat centerButtonLeft = lefButtonLeft + ABPadButtonWidth + horizontalButtonPadding;
+    CGFloat rightButtonLeft = centerButtonLeft + ABPadButtonWidth + horizontalButtonPadding;
+    
+    
+    CGFloat topRowTop = IS_IPHONE4 ? _secondSelectionTop+ABPinSelectionViewHeight+10 : _secondSelectionTop+ABPinSelectionViewHeight+30;
+    
+    
+    CGFloat middleRowTop = topRowTop + ABPadButtonHeight + verticalButtonPadding;
+    CGFloat bottomRowTop = middleRowTop + ABPadButtonHeight + verticalButtonPadding;
+    CGFloat zeroRowTop = bottomRowTop + ABPadButtonHeight + verticalButtonPadding;
+    
+    [self setUpButton:self.buttonOne left:lefButtonLeft top:topRowTop];
+    [self setUpButton:self.buttonTwo left:centerButtonLeft top:topRowTop];
+    [self setUpButton:self.buttonThree left:rightButtonLeft top:topRowTop];
+    
+    [self setUpButton:self.buttonFour left:lefButtonLeft top:middleRowTop];
+    [self setUpButton:self.buttonFive left:centerButtonLeft top:middleRowTop];
+    [self setUpButton:self.buttonSix left:rightButtonLeft top:middleRowTop];
+    
+    [self setUpButton:self.buttonSeven left:lefButtonLeft top:bottomRowTop];
+    [self setUpButton:self.buttonEight left:centerButtonLeft top:bottomRowTop];
+    [self setUpButton:self.buttonNine left:rightButtonLeft top:bottomRowTop];
+    
+    [self setUpButton:self.buttonZero left:centerButtonLeft top:zeroRowTop];
+    
+    CGRect deleteCancelButtonFrame = CGRectMake(rightButtonLeft, zeroRowTop + ABPadButtonHeight/2, ABPadButtonWidth, 20);
+    
+    if (!self.cancelButtonDisabled)
+    {
+        self.cancelButton.frame = deleteCancelButtonFrame;
+        [self.contentView addSubview:self.cancelButton];
+    }
+    
+    self.deleteButton.frame = deleteCancelButtonFrame;
+    [self.contentView addSubview:self.deleteButton];
 }
 
 - (void)layoutButtonArea
@@ -538,11 +591,7 @@
     
     CGFloat topRowTop = self.detailLabel.frame.origin.y + self.detailLabel.frame.size.height + 15;
     
-    if (!IS_IPHONE5) topRowTop = self.detailLabel.frame.origin.y + self.detailLabel.frame.size.height + 10;
-    
-    if (_isSetup) {
-        topRowTop = _secondSelectionTop+ABPinSelectionViewHeight+30;
-    }
+    if (IS_IPHONE4) topRowTop = self.detailLabel.frame.origin.y + self.detailLabel.frame.size.height + 10;
     
     CGFloat middleRowTop = topRowTop + ABPadButtonHeight + verticalButtonPadding;
     CGFloat bottomRowTop = middleRowTop + ABPadButtonHeight + verticalButtonPadding;
@@ -563,23 +612,23 @@
     [self setUpButton:self.buttonZero left:centerButtonLeft top:zeroRowTop];
     
     
-	CGRect deleteCancelButtonFrame = CGRectMake(rightButtonLeft, zeroRowTop + ABPadButtonHeight + 25, ABPadButtonWidth, 20);
-	if(!IS_IPHONE5)
-	{
-		//Bring it higher for small device screens
-		deleteCancelButtonFrame = CGRectMake(rightButtonLeft, zeroRowTop + ABPadButtonHeight - 20, ABPadButtonWidth, 20);
-	}
-	
-	if(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
-	{
-		//Center it with zero button
-		deleteCancelButtonFrame = CGRectMake(rightButtonLeft, zeroRowTop + (ABPadButtonHeight / 2 - 10), ABPadButtonWidth, 20);
-	}
+    CGRect deleteCancelButtonFrame = CGRectMake(rightButtonLeft, zeroRowTop + ABPadButtonHeight + 25, ABPadButtonWidth, 20);
+    if(!IS_IPHONE5)
+    {
+        //Bring it higher for small device screens
+        deleteCancelButtonFrame = CGRectMake(rightButtonLeft, zeroRowTop + ABPadButtonHeight - 20, ABPadButtonWidth, 20);
+    }
+    
+    if(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+    {
+        //Center it with zero button
+        deleteCancelButtonFrame = CGRectMake(rightButtonLeft, zeroRowTop + (ABPadButtonHeight / 2 - 10), ABPadButtonWidth, 20);
+    }
     
     if (_isSetup) {
         deleteCancelButtonFrame = CGRectMake(rightButtonLeft, zeroRowTop + ABPadButtonHeight/2, ABPadButtonWidth, 20);
     }
-	
+    
     if (!self.cancelButtonDisabled)
     {
         self.cancelButton.frame = deleteCancelButtonFrame;
@@ -620,7 +669,7 @@
 #pragma mark - Orientation height helpers
 - (CGFloat)correctWidth
 {
-	return _contentView.bounds.size.width;
+    return _contentView.bounds.size.width;
 }
 
 - (CGFloat)correctHeight
