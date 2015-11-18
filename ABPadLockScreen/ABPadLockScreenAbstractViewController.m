@@ -53,6 +53,16 @@
     return self;
 }
 
+- (id)initWithSetup
+{
+    self = [self init];
+    if (self)
+    {
+        _isSetupPin = YES;
+    }
+    return self;
+}
+
 - (id)initWithComplexPin:(BOOL)complexPin
 {
     self = [self init];
@@ -79,11 +89,15 @@
         }
     }
     
-    self.view = [[ABPadLockScreenView alloc] initWithFrame:bounds complexPin:self.isComplexPin];
+    if (_isSetupPin) {
+        self.view = [[ABPadLockScreenView alloc] initWithFrame:bounds andSetup:YES];
+    } else {
+        self.view = [[ABPadLockScreenView alloc] initWithFrame:bounds complexPin:self.isComplexPin];
+    }
     
     [self setUpButtonMapping];
     [lockScreenView.deleteButton addTarget:self action:@selector(deleteButtonSelected:) forControlEvents:UIControlEventTouchUpInside];
-	[lockScreenView.okButton addTarget:self action:@selector(okButtonSelected:) forControlEvents:UIControlEventTouchUpInside];
+    [lockScreenView.okButton addTarget:self action:@selector(okButtonSelected:) forControlEvents:UIControlEventTouchUpInside];
 }
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations
@@ -97,30 +111,30 @@
 
 - (UIStatusBarStyle)preferredStatusBarStyle
 {
-	if(lockScreenView.backgroundView != nil)
-	{
-		//Background view is shown - need light content status bar.
-		return UIStatusBarStyleLightContent;
-	}
-	
-	//Check background color if light or dark.
-	UIColor* color = lockScreenView.backgroundColor;
-	
-	if(color == nil)
-	{
-		color = lockScreenView.backgroundColor = [UIColor blackColor];
-	}
-	
-	const CGFloat *componentColors = CGColorGetComponents(color.CGColor);
-	
-	//Determine brightness
-    CGFloat colorBrightness = (CGColorGetNumberOfComponents(color.CGColor) == 2 ?
-							   //Black and white color
-							   componentColors[0] :
-							   //RGB color
-							   ((componentColors[0] * 299) + (componentColors[1] * 587) + (componentColors[2] * 114)) / 1000);
+    if(lockScreenView.backgroundView != nil)
+    {
+        //Background view is shown - need light content status bar.
+        return UIStatusBarStyleLightContent;
+    }
     
-	if (colorBrightness < 0.5)
+    //Check background color if light or dark.
+    UIColor* color = lockScreenView.backgroundColor;
+    
+    if(color == nil)
+    {
+        color = lockScreenView.backgroundColor = [UIColor blackColor];
+    }
+    
+    const CGFloat *componentColors = CGColorGetComponents(color.CGColor);
+    
+    //Determine brightness
+    CGFloat colorBrightness = (CGColorGetNumberOfComponents(color.CGColor) == 2 ?
+                               //Black and white color
+                               componentColors[0] :
+                               //RGB color
+                               ((componentColors[0] * 299) + (componentColors[1] * 587) + (componentColors[2] * 114)) / 1000);
+    
+    if (colorBrightness < 0.5)
     {
         return UIStatusBarStyleLightContent;
     }
@@ -132,7 +146,7 @@
 
 - (void)viewWillAppear:(BOOL)animated
 {
-	[super viewWillAppear:animated];
+    [super viewWillAppear:animated];
 }
 
 #pragma mark -
@@ -167,12 +181,12 @@
 
 - (void)setBackgroundView:(UIView *)backgroundView
 {
-	[lockScreenView setBackgroundView:backgroundView];
-	
-	if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1)
-	{
-		[self setNeedsStatusBarAppearanceUpdate];
-	}
+    [lockScreenView setBackgroundView:backgroundView];
+    
+    if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1)
+    {
+        [self setNeedsStatusBarAppearanceUpdate];
+    }
 }
 
 #pragma mark -
@@ -199,6 +213,7 @@
 #pragma mark - Button Methods
 - (void)newPinSelected:(NSInteger)pinNumber
 {
+    
     if (!self.isComplexPin && [self.currentPin length] >= SIMPLE_PIN_LENGTH)
     {
         return;
@@ -206,28 +221,38 @@
     
     self.currentPin = [NSString stringWithFormat:@"%@%ld", self.currentPin, (long)pinNumber];
     
-	if(self.isComplexPin)
-	{
-		[lockScreenView updatePinTextfieldWithLength:self.currentPin.length];
-	}
-	else
-	{
-		NSUInteger curSelected = [self.currentPin length] - 1;
-		[lockScreenView.digitsArray[curSelected]  setSelected:YES animated:YES completion:nil];
+    
+    if(self.isComplexPin)
+    {
+        [lockScreenView updatePinTextfieldWithLength:self.currentPin.length];
     }
-		
+    else
+    {
+        NSUInteger curSelected = [self.currentPin length] - 1;
+        
+        if (_isSetupPin && _secondTime) {
+            [lockScreenView.secondDigitsArray[curSelected]  setSelected:YES animated:YES completion:nil];
+        } else {
+            [lockScreenView.digitsArray[curSelected]  setSelected:YES animated:YES completion:nil];
+        }
+    }
+    
     if ([self.currentPin length] == 1)
     {
         [lockScreenView showDeleteButtonAnimated:YES completion:nil];
-		
-		if(self.complexPin)
-		{
-			[lockScreenView showOKButton:YES animated:YES completion:nil];
-		}
+        
+        if(self.complexPin)
+        {
+            [lockScreenView showOKButton:YES animated:YES completion:nil];
+        }
     }
     else if (!self.isComplexPin && [self.currentPin length] == SIMPLE_PIN_LENGTH)
     {
-        [lockScreenView.digitsArray.lastObject setSelected:YES animated:YES completion:nil];
+        if (_isSetupPin && _secondTime) {
+            [lockScreenView.secondDigitsArray.lastObject setSelected:YES animated:YES completion:nil];
+        } else {
+            [lockScreenView.digitsArray.lastObject setSelected:YES animated:YES completion:nil];
+        }
         [self processPin];
     }
 }
@@ -241,20 +266,20 @@
     
     self.currentPin = [self.currentPin substringWithRange:NSMakeRange(0, [self.currentPin length] - 1)];
     
-	if(self.isComplexPin)
-	{
-		[lockScreenView updatePinTextfieldWithLength:self.currentPin.length];
-	}
-	else
-	{
-		NSUInteger pinToDeselect = [self.currentPin length];
-		[lockScreenView.digitsArray[pinToDeselect] setSelected:NO animated:YES completion:nil];
-	}
+    if(self.isComplexPin)
+    {
+        [lockScreenView updatePinTextfieldWithLength:self.currentPin.length];
+    }
+    else
+    {
+        NSUInteger pinToDeselect = [self.currentPin length];
+        [lockScreenView.digitsArray[pinToDeselect] setSelected:NO animated:YES completion:nil];
+    }
     
     if ([self.currentPin length] == 0)
     {
         [lockScreenView showCancelButtonAnimated:YES completion:nil];
-		[lockScreenView showOKButton:NO animated:YES completion:nil];
+        [lockScreenView showOKButton:NO animated:YES completion:nil];
     }
 }
 
@@ -275,7 +300,7 @@
 
 - (void)okButtonSelected:(UIButton *)sender
 {
-	[self processPin];
+    [self processPin];
 }
 
 @end

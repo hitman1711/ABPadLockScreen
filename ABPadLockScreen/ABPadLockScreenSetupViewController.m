@@ -48,7 +48,7 @@
 
 - (instancetype)initWithDelegate:(id<ABPadLockScreenSetupViewControllerDelegate>)delegate complexPin:(BOOL)complexPin
 {
-    self = [super initWithComplexPin:complexPin];
+    self = [super initWithSetup];
     if (self)
     {
         _setupScreenDelegate = delegate;
@@ -103,8 +103,10 @@
 {
     self.enteredPin = self.currentPin;
     self.currentPin = @"";
-    [lockScreenView updateDetailLabelWithString:self.pinConfirmationText animated:YES completion:nil];
-    [lockScreenView resetAnimated:YES];
+    self.secondTime = YES;
+//    [lockScreenView updateDetailLabelWithString:self.pinConfirmationText animated:YES completion:nil];
+//    [lockScreenView resetAnimated:YES];
+    [lockScreenView checkPin];
 }
          
 - (void)validateConfirmedPin
@@ -123,6 +125,7 @@
         [lockScreenView resetAnimated:YES];
         self.enteredPin = nil;
         self.currentPin = @"";
+        self.secondTime = NO;
         
         // viberate feedback
         if (self.errorVibrateEnabled)

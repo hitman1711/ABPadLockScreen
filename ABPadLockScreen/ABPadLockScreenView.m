@@ -51,7 +51,7 @@
 @implementation ABPadLockScreenView
 
 @synthesize digitsArray = _digitsArray;
-
+@synthesize secondDigitsArray = _secondDigitsArray;
 #pragma mark -
 #pragma mark - Init Methods
 - (id)initWithFrame:(CGRect)frame complexPin:(BOOL)complexPin
@@ -75,6 +75,15 @@
     return self;
 }
 
+- (id)initWithFrame:(CGRect)frame andSetup:(BOOL)isSetup {
+    self = [self initWithFrame:frame];
+    if (self)
+    {
+        _isSetup = isSetup;
+    }
+    return self;
+}
+
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
@@ -93,6 +102,9 @@
         _enterPasscodeLabel.text = NSLocalizedString(@"Enter Passcode", @"");
         
         _detailLabel = [self standardLabel];
+        
+        _repeatLabel = [self standardLabel];
+        _repeatLabel.text = NSLocalizedString(@"Введите код доступа повторно", @"");
         
         _buttonOne = [[ABPadButton alloc] initWithFrame:CGRectZero number:1 letters:nil];
         _buttonTwo = [[ABPadButton alloc] initWithFrame:CGRectZero number:2 letters:@"ABC"];
@@ -177,6 +189,19 @@
     return _digitsArray;
 }
 
+- (NSArray *)secondDigitsArray{
+
+    if (!_secondDigitsArray){
+        NSMutableArray *array = [NSMutableArray arrayWithCapacity:SIMPLE_PIN_LENGTH];
+        for (NSInteger i = 0; i < SIMPLE_PIN_LENGTH; i++){
+            ABPinSelectionView *view = [[ABPinSelectionView alloc] initWithFrame:CGRectZero];
+            [array addObject:view];
+        }
+        _secondDigitsArray = [array copy];
+    }
+    return _secondDigitsArray;
+}
+
 - (void)showCancelButtonAnimated:(BOOL)animated completion:(void (^)(BOOL finished))completion
 {
     __weak ABPadLockScreenView *weakSelf = self;
@@ -215,9 +240,15 @@
     
     self.detailLabel.text = string;
 
+    if (_isSetup) {
+        CGFloat pinSelectionTop = self.enterPasscodeLabel.frame.origin.y + self.enterPasscodeLabel.frame.size.height + 13;
+        
+        self.detailLabel.frame = CGRectMake(([self correctWidth]/2) - 150, pinSelectionTop, 300, 23);
+    } else {
 	CGFloat pinSelectionTop = self.enterPasscodeLabel.frame.origin.y + self.enterPasscodeLabel.frame.size.height + 17.5;
 	
     self.detailLabel.frame = CGRectMake(([self correctWidth]/2) - 150, pinSelectionTop + 30, 300, 23);
+    }
 }
 
 - (void)lockViewAnimated:(BOOL)animated completion:(void (^)(BOOL finished))completion
@@ -277,11 +308,22 @@
 	}];
 }
 
+-(void)checkPin{
+    
+}
+
 - (void)resetAnimated:(BOOL)animated
 {
     for (ABPinSelectionView *view in self.digitsArray)
     {
         [view setSelected:NO animated:animated completion:nil];
+    }
+    if (_isSetup) {
+        for (ABPinSelectionView *view in self.secondDigitsArray)
+        {
+            [view setSelected:NO animated:animated completion:nil];
+        }
+
     }
     
     [self showCancelButtonAnimated:animated completion:nil];
@@ -370,6 +412,9 @@
     self.detailLabel.textColor = self.labelColor;
     self.detailLabel.font = self.detailLabelFont;
     
+    self.repeatLabel.textColor = self.labelColor;
+    self.repeatLabel.font = self.detailLabelFont;
+    
     [self.cancelButton setTitleColor:self.labelColor forState:UIControlStateNormal];
     self.cancelButton.titleLabel.font = self.deleteCancelLabelFont;
     
@@ -383,7 +428,8 @@
 #pragma mark - Leyout Methods
 - (void)performLayout
 {
-    [self layoutTitleArea];
+    if (_isSetup) [self layoutTitleAreaForSetup];
+    else [self layoutTitleArea];
     [self layoutButtonArea];
     _requiresRotationCorrection = YES;
 }
@@ -435,6 +481,49 @@
     [self.contentView addSubview:self.detailLabel];
 }
 
+-(void)layoutTitleAreaForSetup{
+    CGFloat top = NSFoundationVersionNumber <= NSFoundationVersionNumber_iOS_6_1 ? 15 : 65;
+    if(!IS_IPHONE5)
+    {
+        top = NSFoundationVersionNumber <= NSFoundationVersionNumber_iOS_6_1 ? 5 : 15;
+    }
+    if(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+    {
+        top = NSFoundationVersionNumber <= NSFoundationVersionNumber_iOS_6_1 ? 30 : 80;;
+    }
+    top = 30;
+    self.enterPasscodeLabel.frame = CGRectMake(([self correctWidth]/2) - 150, top, 300, 23);
+    [self.contentView addSubview:self.enterPasscodeLabel];
+    
+    CGFloat detailLabelTop = self.enterPasscodeLabel.frame.origin.y + self.enterPasscodeLabel.frame.size.height+20;
+    self.detailLabel.frame = CGRectMake(([self correctWidth]/2) - 150, detailLabelTop, 300, 23);
+    [self.contentView addSubview:self.detailLabel];
+    
+    CGFloat pinSelectionTop = self.detailLabel.frame.origin.y + self.detailLabel.frame.size.height + 5;
+    
+    CGFloat pinPadding = 25;
+    CGFloat pinRowWidth = (ABPinSelectionViewWidth * SIMPLE_PIN_LENGTH) + (pinPadding * (SIMPLE_PIN_LENGTH - 1));
+    
+    CGFloat selectionViewLeft = ([self correctWidth]/2) - (pinRowWidth/2);
+    
+    for (ABPinSelectionView *view in self.digitsArray) {
+        [self setUpPinSelectionView:view  left:selectionViewLeft top:pinSelectionTop];
+        selectionViewLeft+=ABPinSelectionViewWidth + pinPadding;
+    }
+    CGFloat repeatLabelTop = pinSelectionTop+ABPinSelectionViewHeight+15;
+
+    self.repeatLabel.frame = CGRectMake(([self correctWidth]/2) - 150,repeatLabelTop , 300, 23);
+    [self.contentView addSubview:self.repeatLabel];
+    
+    _secondSelectionTop = self.repeatLabel.frame.origin.y + self.repeatLabel.frame.size.height + 10;
+    selectionViewLeft = ([self correctWidth]/2) - (pinRowWidth/2);
+    for (ABPinSelectionView *view in self.secondDigitsArray) {
+        [self setUpPinSelectionView:view  left:selectionViewLeft top:_secondSelectionTop];
+        selectionViewLeft+=ABPinSelectionViewWidth + pinPadding;
+    }
+   
+}
+
 - (void)layoutButtonArea
 {
     CGFloat horizontalButtonPadding = 20;
@@ -446,9 +535,14 @@
     CGFloat centerButtonLeft = lefButtonLeft + ABPadButtonWidth + horizontalButtonPadding;
     CGFloat rightButtonLeft = centerButtonLeft + ABPadButtonWidth + horizontalButtonPadding;
     
+    
     CGFloat topRowTop = self.detailLabel.frame.origin.y + self.detailLabel.frame.size.height + 15;
     
     if (!IS_IPHONE5) topRowTop = self.detailLabel.frame.origin.y + self.detailLabel.frame.size.height + 10;
+    
+    if (_isSetup) {
+        topRowTop = _secondSelectionTop+ABPinSelectionViewHeight+30;
+    }
     
     CGFloat middleRowTop = topRowTop + ABPadButtonHeight + verticalButtonPadding;
     CGFloat bottomRowTop = middleRowTop + ABPadButtonHeight + verticalButtonPadding;
@@ -468,6 +562,7 @@
     
     [self setUpButton:self.buttonZero left:centerButtonLeft top:zeroRowTop];
     
+    
 	CGRect deleteCancelButtonFrame = CGRectMake(rightButtonLeft, zeroRowTop + ABPadButtonHeight + 25, ABPadButtonWidth, 20);
 	if(!IS_IPHONE5)
 	{
@@ -480,6 +575,10 @@
 		//Center it with zero button
 		deleteCancelButtonFrame = CGRectMake(rightButtonLeft, zeroRowTop + (ABPadButtonHeight / 2 - 10), ABPadButtonWidth, 20);
 	}
+    
+    if (_isSetup) {
+        deleteCancelButtonFrame = CGRectMake(rightButtonLeft, zeroRowTop + ABPadButtonHeight/2, ABPadButtonWidth, 20);
+    }
 	
     if (!self.cancelButtonDisabled)
     {

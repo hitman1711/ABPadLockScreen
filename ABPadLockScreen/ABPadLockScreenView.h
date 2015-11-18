@@ -39,6 +39,7 @@
 
 @property (nonatomic, strong, readonly) UILabel *enterPasscodeLabel;
 @property (nonatomic, strong, readonly) UILabel *detailLabel;
+@property (nonatomic, strong) UILabel *repeatLabel;
 
 @property (nonatomic, strong, readonly) UIButton *buttonOne;
 @property (nonatomic, strong, readonly) UIButton *buttonTwo;
@@ -67,8 +68,12 @@
 /*
  The following are used to decide how to display the padlock view - complex (text field) or simple (digits)
  */
+@property (nonatomic, assign) BOOL isSetup;
+@property (nonatomic, assign) CGFloat secondSelectionTop;
+
 @property (nonatomic, assign, readonly, getter = isComplexPin) BOOL complexPin;
 @property (nonatomic, strong, readonly) NSArray *digitsArray;
+@property (nonatomic, strong, readonly) NSArray *secondDigitsArray;
 @property (nonatomic, strong, readonly) UITextField *digitsTextField;
 
 - (void)showCancelButtonAnimated:(BOOL)animated completion:(void (^)(BOOL finished))completion;
@@ -82,8 +87,10 @@
 - (void)animateFailureNotification;
 - (void)resetAnimated:(BOOL)animated;
 
+-(void)checkPin;
+
 - (void)updatePinTextfieldWithLength:(NSUInteger)length;
 
 - (id)initWithFrame:(CGRect)frame complexPin:(BOOL)complexPin;
-
+- (id)initWithFrame:(CGRect)frame andSetup:(BOOL)isSetup;
 @end
